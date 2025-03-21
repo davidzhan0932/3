@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Colorful Resizing Balloons</title>
+<style>
+body {
+  overflow: hidden;
+  margin: 0;
+  background-color: #eee;
+}
+
+.balloon {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: red;
+  opacity: 0.7;
+}
+</style>
+</head>
+<body>
+
+<script>
+const numBalloons = 10;
+const balloons = [];
+
+function createBalloon() {
+  const balloon = document.createElement('div');
+  balloon.classList.add('balloon');
+
+  // Initial random position
+  balloon.style.left = Math.random() * window.innerWidth + 'px';
+  balloon.style.top = window.innerHeight + 'px'; // Start from the bottom
+
+  // Initial random size
+  let size = 30 + Math.random() * 40; // Size between 30 and 70 px
+  balloon.style.width = size + 'px';
+  balloon.style.height = size + 'px';
+
+  // Initial random color
+  balloon.style.backgroundColor = getRandomColor();
+
+  document.body.appendChild(balloon);
+  balloons.push(balloon);
+
+  // Animate the balloon
+  animateBalloon(balloon);
+}
+
+function animateBalloon(balloon) {
+  let start = null;
+  const duration = 5000 + Math.random() * 3000; // Random duration
+  let initialSize = parseInt(balloon.style.width);
+  let maxSizeIncrease = initialSize * 0.5; //Maximum increase of 50% of initial size
+  let initialColor = balloon.style.backgroundColor;
+
+  function step(timestamp) {
+    if (!start) start = timestamp;
+    let progress = timestamp - start;
+    let ratio = Math.min(progress / duration, 1);
+
+    // Calculate new position (move upwards)
+    balloon.style.top = window.innerHeight - (ratio * (window.innerHeight + parseInt(balloon.style.height))) + 'px';
+
+    // Resize the balloon
+    let newSize = initialSize + (maxSizeIncrease * ratio);
+    balloon.style.width = newSize + 'px';
+    balloon.style.height = newSize + 'px';
+    balloon.style.marginLeft = -newSize/2 + 'px';
+    balloon.style.marginTop = -newSize/2 + 'px';
+
+    // Change the color
+    balloon.style.backgroundColor = interpolateColor(initialColor, getRandomColor(), ratio);
+
+    if (ratio < 1) {
+      requestAnimationFrame(step);
+    } else {
+      // Remove the balloon when it goes off-screen
+      balloon.remove();
+      balloons.splice(balloons.indexOf(balloon), 1);
+    }
+  }
+
+  requestAnimationFrame(step);
+}
+
+function getRandomColor() {
+  const letters = '0123456789ABCDEF';
+  let color = '#';
+  for (let i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
+
+function interpolateColor(color1, color2, factor) {
+  let result = color1.slice(4,-1).split(",").map(function(x){return parseInt(x)});
+  let result2 = color2.slice(4,-1).split(",").map(function(x){return parseInt(x)});
+
+  let r = Math.round(result[0] * (1 - factor) + result2[0] * factor);
+  let g = Math.round(result[1] * (1 - factor) + result2[1] * factor);
+  let b = Math.round(result[2] * (1 - factor) + result2[2] * factor);
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+// Create the balloons
+for (let i = 0; i < numBalloons; i++) {
+  createBalloon();
+}
+
+// Create new balloons periodically
+setInterval(() => {
+  if (balloons.length < numBalloons){
+    createBalloon();
+  }
+}, 2000); // Create a new balloon every 2 seconds
+
+</script>
+
+</body>
+</html>
