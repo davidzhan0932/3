@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>二次方程求解器</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .equation-form {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        input {
+            width: 60px;
+            height: 30px;
+            margin: 0 5px;
+            text-align: center;
+            font-size: 16px;
+        }
+        button {
+            margin-left: 10px;
+            padding: 8px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #solution {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            min-height: 50px;
+        }
+        .math {
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <h1>二次方程求解器</h1>
+    <p>输入二次方程的系数：</p>
+    
+    <div class="equation-form">
+        <input type="number" id="a" step="any" placeholder="a"> x² +
+        <input type="number" id="b" step="any" placeholder="b"> x +
+        <input type="number" id="c" step="any" placeholder="c"> = 0
+        <button onclick="solveEquation()">求解</button>
+    </div>
+    
+    <h2>解:</h2>
+    <div id="solution">
+    </div>
+
+    <script>
+        function solveEquation() {
+            const a = parseFloat(document.getElementById('a').value);
+            const b = parseFloat(document.getElementById('b').value);
+            const c = parseFloat(document.getElementById('c').value);
+            
+            if (isNaN(a) || isNaN(b) || isNaN(c)) {
+                document.getElementById('solution').innerHTML = "请输入有效的系数";
+                return;
+            }
+            
+            if (a === 0) {
+                if (b === 0) {
+                    if (c === 0) {
+                        document.getElementById('solution').innerHTML = "方程有无穷多解";
+                    } else {
+                        document.getElementById('solution').innerHTML = "方程无解";
+                    }
+                } else {
+                    const x = -c / b;
+                    document.getElementById('solution').innerHTML = `x = ${x}`;
+                }
+                return;
+            }
+            
+            const discriminant = b * b - 4 * a * c;
+            
+            if (discriminant > 0) {
+                const x1 = (-b + Math.sqrt(discriminant)) / (2 * a);
+                const x2 = (-b - Math.sqrt(discriminant)) / (2 * a);
+                document.getElementById('solution').innerHTML = `方程有两个不同的实数解:<br>x₁ = ${x1}<br>x₂ = ${x2}`;
+            } else if (discriminant === 0) {
+                const x = -b / (2 * a);
+                document.getElementById('solution').innerHTML = `方程有一个实数解（重根）:<br>x = ${x}`;
+            } else {
+                const realPart = -b / (2 * a);
+                const imaginaryPart = Math.sqrt(-discriminant) / (2 * a);
+                document.getElementById('solution').innerHTML = 
+                    `方程有两个共轭复数解:<br>` +
+                    `x₁ = ${realPart.toFixed(4)} + ${imaginaryPart.toFixed(4)}i<br>` +
+                    `x₂ = ${realPart.toFixed(4)} - ${imaginaryPart.toFixed(4)}i`;
+            }
+        }
+    </script>
+</body>
+</html>
