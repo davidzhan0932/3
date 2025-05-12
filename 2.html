@@ -1,0 +1,64 @@
+class Sheet {
+  constructor(fileInputOrContent) {
+    if (typeof fileInputOrContent === "string") {
+      this.content = fileInputOrContent;
+      this.data2d = this.parseCSV(this.content);
+      this.heading = this.data2d[0];
+      this.numberOfrows = this.data2d.length;
+      this.numberOfcols = this.heading.length;
+      this.filename = '';
+    } else if (fileInputOrContent instanceof File) {
+      this.filename = fileInputOrContent.name;
+      this.content = '';
+      this.data2d = [];
+      this.heading = [];
+      this.numberOfrows = 0;
+      this.numberOfcols = 0;
+      this.readFileContent(fileInputOrContent);
+    }
+
+    this.mismatch = [];
+    this.matchColumns = -1;
+    this.mergeColumns = [];
+    this.otherSheet = null;
+  }
+
+  parseCSV(csvContent) {
+    const rows = csvContent.split("\n");
+    return rows.map(row => row.split(","));
+  }
+
+  async readFileContent(file) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.content = reader.result;
+      this.data2d = this.parseCSV(this.content);
+      this.heading = this.data2d[0];
+      this.numberOfrows = this.data2d.length;
+      this.numberOfcols = this.heading.length;
+    };
+    reader.readAsText(file);
+  }
+
+  maketable() {
+    let tableHTML = "<table border='1'>";
+    tableHTML += "<thead><tr>";
+    this.heading.forEach(col => {
+      tableHTML += `<th>${col}</th>`;
+    });
+    tableHTML += "</tr></thead>";
+
+    tableHTML += "<tbody>";
+    for (let i = 1; i < this.data2d.length; i++) {
+      tableHTML += "<tr>";
+      this.data2d[i].forEach(cell => {
+        tableHTML += `<td>${cell}</td>`;
+      });
+      tableHTML += "</tr>";
+    }
+    tableHTML += "</tbody>";
+
+    tableHTML += "</table>";
+    return tableHTML;
+  }
+}

@@ -1,0 +1,110 @@
+class Sheet {
+  constructor(fileInputOrContent) {
+    if (typeof fileInputOrContent === "string") {
+      this.content = fileInputOrContent;
+      this.data2d = this.parseCSV(this.content);
+      this.heading = this.data2d[0];
+      this.numberOfrows = this.data2d.length;
+      this.numberOfcols = this.heading.length;
+      this.filename = '';
+    } else if (fileInputOrContent instanceof File) {
+      this.filename = fileInputOrContent.name;
+      this.content = '';
+      this.data2d = [];
+      this.heading = [];
+      this.numberOfrows = 0;
+      this.numberOfcols = 0;
+      this.readFileContent(fileInputOrContent);
+    }
+
+    this.mismatch = [];
+    this.matchColumns = -1;
+    this.mergeColumns = [];
+    this.otherSheet = null;
+  }
+
+  parseCSV(csvContent) {
+    const rows = csvContent.split("\n");
+    return rows.map(row => row.split(","));
+  }
+
+  async readFileContent(file) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.content = reader.result;
+      this.data2d = this.parseCSV(this.content);
+      this.heading = this.data2d[0];
+      this.numberOfrows = this.data2d.length;
+      this.numberOfcols = this.heading.length;
+    };
+    reader.readAsText(file);
+  }
+
+  matchColumn(anotherSheet) {
+    this.otherSheet = anotherSheet;
+    let list = [];
+
+    for (let i = 0; i < this.numberOfcols; i++) {
+      for (let j = 0; j < anotherSheet.numberOfcols; j++) {
+        let factorValue = this.calculateFactor(i, j, anotherSheet);
+        list.push([i, j, factorValue]);
+      }
+    }
+
+    list.sort((a, b) => b[2] - a[2]);
+
+    return list.slice(0, 3);
+  }
+
+  calculateFactor(i, j, anotherSheet) {
+    let thisColumn = this.data2d.map(row => row[i]);
+    let otherColumn = anotherSheet.data2d.map(row => row[j]);
+
+    let commonThisToOther = thisColumn.filter(value => otherColumn.includes(value)).length;
+    let commonOtherToThis = otherColumn.filter(value => thisColumn.includes(value)).length;
+
+    let distinctThis = new Set(thisColumn).size;
+    let distinctOther = new Set(otherColumn).size;
+
+    return commonThisToOther + commonOtherToThis + distinctThis + distinctOther;
+  }
+
+  matchRows() {
+    let mismatchedRows = [];
+
+    for (let i = 1; i < this.numberOfrows; i++) {
+      let thisRow = this.data2d[i];
+      let isMatchFound = false;
+
+      for (let j = 1; j < this.otherSheet.numberOfrows; j++) {
+        let otherRow = this.otherSheet.data2d[j];
+
+        if (thisRow.length === otherRow.length && thisRow.every((cell, index) => cell === otherRow[index])) {
+          isMatchFound = true;
+          break;
+        }
+      }
+
+      if (!isMatchFound) {
+        mismatchedRows.push([i, thisRow]);
+      }
+    }
+
+    return mismatchedRows;
+  }
+
+  mergeColumns() {
+    if (!this.otherSheet) {
+      throw new Error("No sheet to merge with");
+    }
+
+    this.mergeColumns.forEach(colIndex => {
+      for (let i = 1; i < this.numberOfrows; i++) {
+        let otherRow = this.otherSheet.data2d[i];
+        if (i < this.numberOfrows) {
+          this.data2d[i][colIndex] = otherRow[colIndex];
+        }
+      }
+    });
+  }
+}
